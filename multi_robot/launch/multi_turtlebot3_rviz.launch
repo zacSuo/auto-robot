@@ -88,6 +88,6 @@
     <node pkg="tf" type="static_transform_publisher" name="world_to_map_merged"  args="0 0 0 0 0 0 world map_merged 100" />
 
     <!-- 启动RViz -->
-    <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find multi_robot)/config/multi_robot.rviz"/> 
+    <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find multi_robot)/config/multi_turtlebot3_rviz.rviz"/> 
 
 </launch>
