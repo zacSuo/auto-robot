@@ -36,7 +36,8 @@
         map_merge/init_pose_x: -7.0
         map_merge/init_pose_y: -1.0
         map_merge/init_pose_z: 0.0
-        map_merge/init_pose_yaw: 1.57
+        <!-- rooot turn but map not -->
+        map_merge/init_pose_yaw: 0.0 
     </rosparam>
 
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
@@ -73,7 +74,8 @@
         map_merge/init_pose_x: 7.0
         map_merge/init_pose_y: -1.0
         map_merge/init_pose_z: 0.0
-        map_merge/init_pose_yaw: 1.57
+        <!-- rooot turn but map not -->
+        map_merge/init_pose_yaw: 0.0
     </rosparam>
 
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
