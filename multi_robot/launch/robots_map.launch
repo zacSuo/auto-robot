@@ -1,0 +1,160 @@
+<launch>
+  <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
+  <arg name="first_tb3"  default="tb3_0"/>
+  <arg name="second_tb3" default="tb3_1"/>
+  <arg name="third_tb3"  default="tb3_2"/>
+
+  <arg name="first_tb3_x_pos" default="-7.0"/>
+  <arg name="first_tb3_y_pos" default="-1.0"/>
+  <arg name="first_tb3_z_pos" default=" 0.0"/>
+  <arg name="first_tb3_yaw"   default=" 1.57"/>
+
+  <arg name="second_tb3_x_pos" default=" 7.0"/>
+  <arg name="second_tb3_y_pos" default="-1.0"/>
+  <arg name="second_tb3_z_pos" default=" 0.0"/>
+  <arg name="second_tb3_yaw"   default=" 1.57"/>
+
+  <arg name="third_tb3_x_pos" default=" 0.5"/>
+  <arg name="third_tb3_y_pos" default=" 3.0"/>
+  <arg name="third_tb3_z_pos" default=" 0.0"/>
+  <arg name="third_tb3_yaw"   default=" 0.0"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find turtlebot3_gazebo)/worlds/turtlebot3_house.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>  
+
+  <group ns = "$(arg first_tb3)">
+    <arg name="robot_name" default="$(arg first_tb3)"/>
+    <arg name="tf_prefix" value="$(arg robot_name)"/>
+    <param name="robot_description" command="$(find xacro)/xacro $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro  tf_prefix:=$(arg robot_name)" />
+    <rosparam>
+        map_merge/init_pose_x: -7.0
+        map_merge/init_pose_y: -1.0
+        map_merge/init_pose_z: 0.0
+        map_merge/init_pose_yaw: 1.57
+    </rosparam>
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" type="double" value="50.0" />
+      <param name="tf_prefix" value="$(arg first_tb3)" />
+    </node>
+    
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg first_tb3) -x $(arg first_tb3_x_pos) -y $(arg first_tb3_y_pos) -z $(arg first_tb3_z_pos) -Y $(arg first_tb3_yaw) -param robot_description" />
+  
+    <!-- TF 变换：从融合地图到机器人局部地图 -->
+    <node pkg="tf" type="static_transform_publisher" name="map_merged_to_robot1_map"
+          args="$0 0 0 0 0 0 map_merged $(arg tf_prefix)/map 100" /> 
+
+    <!-- 启动SLAM -->       
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
+        <param name="base_frame" value="$(arg tf_prefix)/base_footprint"/>
+        <param name="odom_frame" value="$(arg tf_prefix)/odom"/>
+        <param name="map_frame" value="$(arg tf_prefix)/map"/>
+        <param name="use_sim_time" value="true"/>
+        <param name="delta" value="0.05"/>
+        <param name="pub_map_odom_transform" value="false"/>
+        <param name="tf_delay" value="0.05"/>
+        <param name="tf_broadcast" value="true"/>
+        <param name="transform_publish_period" value="0.05"/>
+        <remap from="scan" to="/$(arg tf_prefix)/scan"/>
+    </node>
+  </group>
+
+  <group ns = "$(arg second_tb3)">
+    <arg name="robot_name" default="$(arg second_tb3)"/>
+    <arg name="tf_prefix" value="$(arg robot_name)"/>
+    <param name="robot_description" command="$(find xacro)/xacro $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro  tf_prefix:=$(arg robot_name)" />
+    <rosparam>
+        map_merge/init_pose_x: 7.0
+        map_merge/init_pose_y: -1.0
+        map_merge/init_pose_z: 0.0
+        map_merge/init_pose_yaw: 1.57
+    </rosparam>
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" type="double" value="50.0" />
+      <param name="tf_prefix" value="$(arg second_tb3)" />
+    </node>
+
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg second_tb3) -x $(arg second_tb3_x_pos) -y $(arg second_tb3_y_pos) -z $(arg second_tb3_z_pos) -Y $(arg second_tb3_yaw) -param robot_description" />
+  
+    <!-- TF 变换：从融合地图到机器人局部地图 -->
+    <node pkg="tf" type="static_transform_publisher" name="map_merged_to_robot2_map"
+          args="$0 0 0 0 0 0 map_merged $(arg tf_prefix)/map 100" /> 
+        
+    <!-- 启动SLAM -->       
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
+        <param name="base_frame" value="$(arg tf_prefix)/base_footprint"/>
+        <param name="odom_frame" value="$(arg tf_prefix)/odom"/>
+        <param name="map_frame" value="$(arg tf_prefix)/map"/>
+        <param name="use_sim_time" value="true"/>
+        <param name="delta" value="0.05"/>
+        <param name="pub_map_odom_transform" value="false"/>
+        <param name="tf_delay" value="0.05"/>
+        <param name="tf_broadcast" value="true"/>
+        <param name="transform_publish_period" value="0.05"/>
+        <remap from="scan" to="/$(arg tf_prefix)/scan"/>
+    </node>
+  </group>
+
+  <group ns = "$(arg third_tb3)">
+    <arg name="robot_name" default="$(arg third_tb3)"/>
+    <arg name="tf_prefix" value="$(arg robot_name)"/>
+    <param name="robot_description" command="$(find xacro)/xacro $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro  tf_prefix:=$(arg robot_name)" />
+    <rosparam>
+        map_merge/init_pose_x: 0.5
+        map_merge/init_pose_y: 3.0
+        map_merge/init_pose_z: 0.0
+        map_merge/init_pose_yaw: 0.0
+    </rosparam>
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" type="double" value="50.0" />
+      <param name="tf_prefix" value="$(arg third_tb3)" />
+    </node>
+
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg third_tb3) -x $(arg third_tb3_x_pos) -y $(arg third_tb3_y_pos) -z $(arg third_tb3_z_pos) -Y $(arg third_tb3_yaw) -param robot_description" />
+        
+    <!-- TF 变换：从融合地图到机器人局部地图 -->
+    <node pkg="tf" type="static_transform_publisher" name="map_merged_to_robot3_map"
+          args="$0 0 0 0 0 0 map_merged $(arg tf_prefix)/map 100" />  
+    
+    
+    <!-- 启动SLAM -->       
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
+        <param name="base_frame" value="$(arg tf_prefix)/base_footprint"/>
+        <param name="odom_frame" value="$(arg tf_prefix)/odom"/>
+        <param name="map_frame" value="$(arg tf_prefix)/map"/>
+        <param name="use_sim_time" value="true"/>
+        <param name="delta" value="0.05"/>
+        <param name="pub_map_odom_transform" value="false"/>
+        <param name="tf_delay" value="0.05"/>
+        <param name="tf_broadcast" value="true"/>
+        <param name="transform_publish_period" value="0.05"/>
+        <remap from="scan" to="/$(arg tf_prefix)/scan"/>
+    </node>
+  </group>
+
+    <node pkg="tf" type="static_transform_publisher" name="world_to_map_merged"  args="0 0 0 0 0 0 world map_merged 100" />
+
+    <!-- 启动地图融合 -->
+    <node pkg="multirobot_map_merge" type="map_merge" name="map_merge" output="screen">
+        <param name="known_init_poses" value="true"/>
+        <param name="world_frame" value="map_merged"/>
+        <param name="merging_rate" value="2.0"/>
+        <param name="merged_map_topic" value="map"/>
+        <param name="discovery_rate" value="0.1"/>
+        <param name="estimation_confidence" value="0.9"/>
+        <param name="robot_names" value="$(arg first_tb3),$(arg second_tb3),$(arg third_tb3)"/> 
+        <param name="robot_map_topics" value="/$(arg first_tb3)/map,/$(arg second_tb3)/map,/$(arg third_tb3)/map"/>         
+    </node>
+
+    <!-- 启动RViz -->
+    <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find multi_robot)/config/robots_map.rviz"/> 
+
+</launch>
