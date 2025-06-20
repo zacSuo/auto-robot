@@ -1,0 +1,21 @@
+<launch>
+    <!-- 设置TurtleBot3型号 -->
+    <arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
+    
+    <!-- 启动Gazebo仿真环境 -->
+    <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch">
+        <arg name="model" value="$(arg model)" />
+    </include>
+    
+    <!-- 启动导航 -->
+    <include file="$(find turtlebot3_navigation)/launch/turtlebot3_navigation.launch">
+        <arg name="map_file" value="$HOME/catkin_ws/src/maps/gmapping_house.yaml"/>
+        <arg name="open_rviz" value="true"/>
+    </include>
+    
+    <!-- 启动路径规划节点 -->
+    <node pkg="nav" type="mult_target.py" name="mult_target" output="screen"/>
+    
+    <!-- 启动轨迹跟踪节点 -->
+    <node pkg="nav" type="traj_plan.py" name="traj_plan" output="screen"/>
+</launch>
