@@ -5,6 +5,7 @@ from nav_msgs.msg import Path, Odometry
 from geometry_msgs.msg import PoseStamped, Twist
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from tf.transformations import euler_from_quaternion
+from actionlib_msgs.msg import GoalStatusArray
 import numpy as np
 
 class TrajectoryPlan:
@@ -24,6 +25,7 @@ class TrajectoryPlan:
         # 当前状态
         self.current_path = None
         self.current_pose = None
+        self.current_status = None
         self.current_goal_index = 0
         self.path_received = False
         
@@ -45,7 +47,8 @@ class TrajectoryPlan:
     def odom_callback(self, msg):
         """更新当前机器人位姿"""
         self.current_pose = msg.pose.pose
-    
+
+
     def distance_to_goal(self, goal_pose):
         """计算当前位置到目标点的距离"""
         if self.current_pose is None:
@@ -87,7 +90,7 @@ class TrajectoryPlan:
     def control_loop(self):
         """主控制循环"""
         rate = rospy.Rate(10)  # 10Hz
-        
+
         while not rospy.is_shutdown():
             if self.current_path is not None and self.current_pose is not None:
                 # 检查是否完成所有路径点
@@ -103,8 +106,10 @@ class TrajectoryPlan:
                 # 检查是否到达当前目标点
                 distance = self.distance_to_goal(current_goal.pose)
                 angle_diff = self.angle_to_goal(current_goal.pose)
+
+                rospy.loginfo("current location %d:%f,%f,%f,%f",self.client.get_state(), self.current_pose.position.x, self.current_pose.position.y,distance,angle_diff)
                 
-                if distance < self.goal_tolerance and angle_diff < self.angle_tolerance:
+                if (distance < self.goal_tolerance and angle_diff < self.angle_tolerance) or self.client.get_state() == actionlib.GoalStatus.SUCCEEDED:
                     rospy.loginfo("Reached point %d/%d", 
                                  self.current_goal_index+1, 
                                  len(self.current_path.poses))

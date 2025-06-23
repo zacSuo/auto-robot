@@ -6,18 +6,18 @@ import tf
 
 class MultTarget:
     def __init__(self):
-        rospy.init_node('path_planner')
+        rospy.init_node('mult_target_points')
         
         # 创建路径发布者
         self.path_pub = rospy.Publisher('/target_points', Path, queue_size=10)
         
         # 定义路径点 (x, y, theta)
         self.points = [
-            (1.0, 0.5, 0.0),   # 点1
-            (2.0, 1.5, 1.57),  # 点2 (90度)
+            (-3.0, 1.0, 0.0),   # start
+            (7.0, -1.0, 1.57),  # 点2 (90度)
             (1.5, 2.5, 3.14),  # 点3 (180度)
-            (0.5, 1.5, -1.57), # 点4 (-90度)
-            (1.0, 0.5, 0.0)    # 返回起点
+            (-7.0, -1.0, -1.57), # 点4 (-90度)
+            (1.0, 0.5, 0.0)    # end
         ]
         
     def create_path(self):
@@ -47,11 +47,11 @@ class MultTarget:
         return path
 
     def run(self):
-        rate = rospy.Rate(1)  # 每秒发布一次
+        rate = rospy.Rate(0.1)  # 每10秒发布一次
         while not rospy.is_shutdown():
             path_msg = self.create_path()
             self.path_pub.publish(path_msg)
-            rospy.loginfo("Published path with %d points", len(self.waypoints))
+            rospy.loginfo("Published path with %d points", len(self.points))
             rate.sleep()
 
 if __name__ == '__main__':
