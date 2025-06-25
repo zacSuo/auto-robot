@@ -183,7 +183,7 @@ include_directories(
 #   PATTERN ".svn" EXCLUDE
 # )
 
-install(DIRECTORY scripts launch
+install(DIRECTORY scripts launch param rviz
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

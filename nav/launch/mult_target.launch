@@ -10,7 +10,7 @@
     <!-- 启动导航 -->
     <include file="$(find turtlebot3_navigation)/launch/turtlebot3_navigation.launch">
         <arg name="map_file" value="/home/suo/catkin_ws/src/maps/gmapping_house.yaml"/>
-        <arg name="open_rviz" value="true"/>
+        <arg name="open_rviz" value="false"/>
     </include>
     
     <!-- 启动路径规划节点 -->
@@ -18,4 +18,8 @@
     
     <!-- 启动轨迹跟踪节点 -->
     <node pkg="nav" type="traj_plan.py" name="traj_plan" output="screen"/>
+
+    <!-- RViz 配置 -->
+    <node pkg="rviz" type="rviz" name="rviz" required="true"
+            args="-d $(find nav)/rviz/turtlebot3_multpoints.rviz"/>
 </launch>
