@@ -1,0 +1,43 @@
+<launch>
+  <!-- TurtleBot3 型号设置 -->
+  <arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
+  
+  <!-- Gazebo 仿真环境 -->
+  <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch">
+    <arg name="model" value="$(arg model)" />
+  </include>
+  
+  <!-- 融合的SLAM和导航节点 -->
+  <include file="$(find nav)/launch/turtlebot3_gmapping.launch">
+    <arg name="model" value="$(arg model)"/>
+    <!-- 关键：启用动态地图发布 -->
+    <param name="map_update_interval" value="1.0"/> 
+    <param name="delta" value="0.05"/>
+  </include>
+  
+  <!-- 动态地图服务器 -->
+  <node pkg="map_server" type="map_server" name="dynamic_map_server" args="/home/suo/catkin_ws/src/maps/dynamic_map.yaml">
+    <param name="frame_id" value="map"/>
+    <remap from="map" to="dynamic_map"/>
+    <remap from="map_metadata" to="dynamic_map_metadata"/>
+  </node>
+
+  <!-- 修改后的导航节点 -->
+  <include file="$(find nav)/launch/move_base.launch">
+    <arg name="model" value="$(arg model)" />
+    <!-- 使用动态地图而非静态地图 -->
+    <arg name="dynamic_map" value="true"/>
+  </include>
+<!-- 
+  <node pkg="nav" type="map_updater.py" name="dynamic_map_server" output="screen"/>
+  <node pkg="nav" type="nav_goal.py" name="exploration_controller" output="screen"/> -->
+
+  
+  <!-- RViz 配置 -->
+  <node pkg="rviz" type="rviz" name="rviz" required="true"
+        args="-d $(find turtlebot3_navigation)/rviz/turtlebot3_navigation.rviz"/>
+
+  <!-- TF配置 -->
+  <node pkg="tf" type="static_transform_publisher" name="base_to_laser"
+        args="0.0 0.0 0.0 0.0 0.0 0.0 base_footprint base_scan 100"/>
+</launch>

@@ -1,0 +1,61 @@
+<launch>
+  <!-- 参数：机器人模型 -->
+  <arg name="model" default="burger"/>
+  
+  <!-- 动态地图参数 -->
+  <arg name="dynamic_map" default="true"/>
+  <arg name="map_topic" default="/dynamic_map" if="$(arg dynamic_map)"/>
+  <arg name="map_topic" default="/map" unless="$(arg dynamic_map)"/>
+  
+  <!-- move_base节点 -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <!-- 规划器配置 -->
+    <param name="base_global_planner" value="global_planner/GlobalPlanner" />
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+    
+    <!-- 加载参数文件 -->
+    <rosparam file="$(find turtlebot3_navigation)/param/costmap_common_params_$(arg model).yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find turtlebot3_navigation)/param/costmap_common_params_$(arg model).yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find nav)/param/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find nav)/param/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find nav)/param/move_base_params.yaml" command="load" />
+    <rosparam file="$(find turtlebot3_navigation)/param/dwa_local_planner_params_$(arg model).yaml" command="load" />
+    
+    <!-- 重映射话题 -->
+    <remap from="cmd_vel" to="cmd_vel"/>
+    <remap from="odom" to="odom"/>
+    <remap from="scan" to="scan"/>
+    
+    <!-- 全局代价地图配置（支持动态地图） -->
+    <param name="global_costmap/global_frame" value="map"/>
+    <param name="global_costmap/robot_base_frame" value="base_footprint"/>
+    <param name="global_costmap/laser_scan_sensor/sensor_frame" value="base_scan"/>
+    <param name="global_costmap/laser_scan_sensor/topic" value="scan"/>
+    <param name="global_costmap/laser_scan_sensor/data_type" value="LaserScan"/>
+    <param name="global_costmap/static_map" value="false" if="$(arg dynamic_map)"/>
+    <param name="global_costmap/rolling_window" value="true" if="$(arg dynamic_map)"/>
+    <param name="global_costmap/width" value="10.0" if="$(arg dynamic_map)"/>
+    <param name="global_costmap/height" value="10.0" if="$(arg dynamic_map)"/>
+    <param name="global_costmap/resolution" value="0.05"/>
+    <param name="global_costmap/map_topic" value="$(arg map_topic)" if="$(arg dynamic_map)"/>
+    
+    <!-- 局部代价地图配置 -->
+    <param name="local_costmap/global_frame" value="odom"/>
+    <param name="local_costmap/robot_base_frame" value="base_footprint"/>
+    <param name="local_costmap/laser_scan_sensor/sensor_frame" value="base_scan"/>
+    <param name="local_costmap/laser_scan_sensor/topic" value="scan"/>
+    <param name="local_costmap/laser_scan_sensor/data_type" value="LaserScan"/>
+    <param name="local_costmap/update_frequency" value="10.0"/>
+    <param name="local_costmap/publish_frequency" value="5.0"/>
+    <param name="local_costmap/static_map" value="false"/>
+    <param name="local_costmap/rolling_window" value="true"/>
+    <param name="local_costmap/width" value="3.0"/>
+    <param name="local_costmap/height" value="3.0"/>
+    
+    <!-- 重规划参数 -->
+    <param name="planner_frequency" value="1.0" if="$(arg dynamic_map)"/>
+    <param name="controller_frequency" value="5.0"/>
+    <param name="controller_patience" value="3.0"/>
+    <param name="conservative_reset_dist" value="1.0"/>
+  </node>
+</launch>
