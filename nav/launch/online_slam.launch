@@ -10,7 +10,6 @@
   <!-- 融合的SLAM和导航节点 -->
   <include file="$(find nav)/launch/turtlebot3_gmapping.launch">
     <arg name="model" value="$(arg model)"/>
-    <!-- 关键：启用动态地图发布 -->
     <param name="map_update_interval" value="1.0"/> 
     <param name="delta" value="0.05"/>
   </include>
@@ -22,12 +21,52 @@
     <remap from="map_metadata" to="dynamic_map_metadata"/>
   </node>
 
-  <!-- 修改后的导航节点 -->
-  <include file="$(find nav)/launch/move_base.launch">
+  <!-- 导航节点 -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <!-- <param name="base_global_planner" value="global_planner/GlobalPlanner" /> -->
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+    
+    <rosparam file="$(find turtlebot3_navigation)/param/costmap_common_params_$(arg model).yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find turtlebot3_navigation)/param/costmap_common_params_$(arg model).yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find nav)/param/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find nav)/param/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find nav)/param/move_base_params.yaml" command="load" />
+    <rosparam file="$(find turtlebot3_navigation)/param/dwa_local_planner_params_$(arg model).yaml" command="load" />
+    
+    <remap from="cmd_vel" to="cmd_vel"/>
+    <remap from="odom" to="odom"/>
+    <remap from="scan" to="scan"/>
+    
+    <param name="global_costmap/global_frame" value="map"/>
+    <param name="global_costmap/robot_base_frame" value="base_footprint"/>
+    <param name="global_costmap/laser_scan_sensor/sensor_frame" value="base_scan"/>
+    <param name="global_costmap/laser_scan_sensor/topic" value="scan"/>
+    <param name="global_costmap/laser_scan_sensor/data_type" value="LaserScan"/>
+    <param name="global_costmap/static_map" value="false" />
+    <param name="global_costmap/rolling_window" value="true"/>
+    <param name="global_costmap/width" value="10.0" />
+    <param name="global_costmap/height" value="10.0" />
+    <param name="global_costmap/resolution" value="0.05"/>
+    <param name="global_costmap/map_topic" value="/dynamic_map"/>
+    
+    <param name="local_costmap/global_frame" value="odom"/>
+    <param name="local_costmap/robot_base_frame" value="base_footprint"/>
+    <param name="local_costmap/laser_scan_sensor/sensor_frame" value="base_scan"/>
+    <param name="local_costmap/laser_scan_sensor/topic" value="scan"/>
+    <param name="local_costmap/laser_scan_sensor/data_type" value="LaserScan"/>
+    <param name="local_costmap/update_frequency" value="10.0"/>
+    <param name="local_costmap/publish_frequency" value="5.0"/>
+    <param name="local_costmap/static_map" value="false"/>
+    <param name="local_costmap/rolling_window" value="true"/>
+    <param name="local_costmap/width" value="3.0"/>
+    <param name="local_costmap/height" value="3.0"/>
+    
+    <param name="planner_frequency" value="1.0"/>
+    <param name="controller_frequency" value="5.0"/>
+    <param name="controller_patience" value="3.0"/>
+    <param name="conservative_reset_dist" value="1.0"/>
     <arg name="model" value="$(arg model)" />
-    <!-- 使用动态地图而非静态地图 -->
-    <arg name="dynamic_map" value="true"/>
-  </include>
+  </node>
 <!-- 
   <node pkg="nav" type="map_updater.py" name="dynamic_map_server" output="screen"/>
   <node pkg="nav" type="nav_goal.py" name="exploration_controller" output="screen"/> -->
@@ -38,6 +77,16 @@
         args="-d $(find nav)/rviz/online_slam.rviz"/>
 
   <!-- TF配置 -->
-  <node pkg="tf" type="static_transform_publisher" name="base_to_laser"
-        args="0.0 0.0 0.0 0.0 0.0 0.0 base_footprint base_scan 100"/>
+    <!-- <node pkg="tf" type="static_transform_publisher" name="map_to_odom"
+          args="$0 0 0 0 0 0 map odom 100" />   -->
+  <node pkg="tf" type="static_transform_publisher" name="base_footprint_to_base_link"
+        args="0.0 0.0 0.0 0.0 0.0 0.0 base_footprint base_link 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser_scan"
+        args="0.0 0.0 0.0 0.0 0.0 0.0 base_link base_scan 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="base_link_to_imu_link"
+        args="0.0 0.0 0.0 0.0 0.0 0.0 base_link imu_link 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="base_link_to_wheel_right_link"
+        args="0.0 0.0 0.0 0.0 0.0 0.0 base_link wheel_right_link 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="base_link_to_wheel_left_link"
+        args="0.0 0.0 0.0 0.0 0.0 0.0 base_link wheel_left_link 100"/>
 </launch>
