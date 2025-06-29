@@ -33,10 +33,6 @@
     <rosparam file="$(find nav)/param/move_base_params.yaml" command="load" />
     <rosparam file="$(find turtlebot3_navigation)/param/dwa_local_planner_params_$(arg model).yaml" command="load" />
     
-    <remap from="cmd_vel" to="cmd_vel"/>
-    <remap from="odom" to="odom"/>
-    <remap from="scan" to="scan"/>
-    
     <param name="global_costmap/global_frame" value="map"/>
     <param name="global_costmap/robot_base_frame" value="base_footprint"/>
     <param name="global_costmap/laser_scan_sensor/sensor_frame" value="base_scan"/>
