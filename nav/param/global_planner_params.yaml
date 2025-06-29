@@ -1,0 +1,23 @@
+GlobalPlanner:
+  use_dijkstra: true       # true=Dijkstra, false=A*
+  use_grid_path: false      # true=沿栅格边界生成路径，false=梯度下降法（启用梯度下降法，生成更平滑路径）
+  allow_unknown: true       # 允许路径穿越未知区域
+  old_navfn_behavior: false # 禁用navfn兼容模式
+  # visualize_potential: true # 可视化势场（用于调试）
+  use_quadratic: true       # 启用二次近似，路径更平滑
+  default_tolerance: 0.2    # 目标点容差(m)
+  interpolation_method: "cubic"  # 可选 cubic, linear, blended_cubic
+  publish_scale: 100        # 可视化缩放因子
+  orientation_mode: 1       # 路径方向模式（1=沿路径方向）
+  orientation_window_size: 1    # 增加窗口大小提升平滑度
+  lethal_cost: 253          # 致命障碍物代价阈值
+  neutral_cost: 50          # 中性区域代价
+  cost_factor: 0.3          # 代价因子（影响路径避障权重）  
+  potential_window_size: 5      # 提高梯度计算精度
+  smooth_path: true             # 强制启用路径平滑
+
+
+inflation_layer:
+  enabled: true
+  inflation_radius: 0.7
+  cost_scaling_factor: 3.5
